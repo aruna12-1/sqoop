@@ -1,0 +1,47 @@
+gtsudo service mysqld start
+mysql --version
+mysql -u root -p
+sqoop list-databases --connect jdbc:mysql://localhost/ --username root --password cloudera
+sqoop list-tables --connect jdbc:mysql://localhost/sqoop --username root --password cloudera
+hdfs://quickstart.cloudera:8020/user/cloudera/customer
+
+//MY SQL Commands
+
+show databases;
+create database sqoop;
+use sqoop;
+create table customer(id varchar(3),name varchar(20),age varchar(3),salary integer(10));
+desc customer;
+select * from customer;
+insert into customer values(1,'Ravi',20,100);
+
+sqoop import --connect jdbc:mysql://localhost/sqoop --username root --password cloudera --table customer --m 1
+
+sqoop import --connect jdbc:mysql://localhost/sqoop --username root --password cloudera --table customer --split-by id --m 1
+
+sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --query 'select * from customers where customer_id > 8000 AND $CONDITIONS' --split-by customer_id --m 2 --target-dir /sqoop-retail-customers
+
+BoundingValsQuery: SELECT MIN(`customer_id`), MAX(`customer_id`) FROM `customers`
+
+sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --table primecluster --hbase-table custemployee --column-family personal --hbase-create-table;
+
+create table primecustomer(id integer,name varchar(20),age varchar(3),salary integer(10), PRIMARY KEY(id));
+
+sqoop import --connect jdbc:mysql://localhost/sqoop --username root --password cloudera --table primecustomer --m 1 --incremental append --check-column id --last-value 4
+
+sqoop import --connect jdbc:mysql://localhost/sqoop --username root --password cloudera --table customer --m 1 --hive-import
+
+sqoop import --connect jdbc:mysql://localhost/sqoop --username root --password cloudera --table customer --m 1 --hive-import --hive-table 23may. customer
+
+sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --table customers --columns "customer_id,customer_fname,customer_lname" --hbase-table customercontactinfo --column-family CustomerDetails --hbase-row-key customer_id  --m 1
+
+sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --table customers --columns "customer_id,customer_fname,customer_lname,customer_email,customer_street" --hbase-create-table --hbase-table customercontactinfo1 --column-family CustomerDetails --hbase-row-key customer_id  --m 1
+
+Export:
+create table customer2(id varchar(3),name varchar(20),age varchar(3),salary integer(10));
+sqoop export --connect jdbc:mysql://localhost/sqoop --username root --password cloudera --table customer2 --export-dir /user/cloudera/customer --input-fields-terminated-by ',' --m 1
+
+
+path : /var/lib/sqoop
+
+sudo alternatives --set sqoop2-tomcat-conf /etc/sqoop2/tomcat-conf.dist
